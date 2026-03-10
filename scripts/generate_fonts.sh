@@ -5,7 +5,7 @@ function generate_font() {
   font_name=$3
   font_postfix=$4
 
-  python scripts/generate_simplefont/cli.py --name Bookerly$font_size --size $font_size --chars-file resources/chars_input.txt --ttf resources/fonts/$font_file --out src/resources/fonts/bookerly/$font_name$font_size$font_postfix.h
+  python scripts/generate_simplefont/cli.py --name Bookerly$font_size$font_postfix --size $font_size --chars-file resources/chars_input.txt --ttf resources/fonts/$font_file --out src/resources/fonts/bookerly/$font_name$font_size$font_postfix.h
 }
 
 
