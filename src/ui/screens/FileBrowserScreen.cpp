@@ -127,8 +127,8 @@ void FileBrowserScreen::renderSdBrowser() {
       }
     }
 
-    if (displayNameRaw.length() > 30)
-      displayNameRaw = displayNameRaw.substring(0, 27) + "...";
+    if (displayNameRaw.length() > 40)
+      displayNameRaw = displayNameRaw.substring(0, 37) + "...";
 
     String displayName;
     if (idx == sdSelectedIndex) {
