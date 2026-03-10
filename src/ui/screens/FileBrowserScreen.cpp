@@ -133,9 +133,9 @@ void FileBrowserScreen::renderSdBrowser() {
     String displayName;
     if (idx == sdSelectedIndex) {
       // Show both left and right markers around the selection and center the whole string
-      displayName = String(">") + displayNameRaw + String("<");
+      displayName = String("> ") + displayNameRaw + String(" <");
     } else {
-      displayName = displayNameRaw;
+      displayName = String("  ") + displayNameRaw + String("  ");
     }
 
     int16_t x1, y1;
