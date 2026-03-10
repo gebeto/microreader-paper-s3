@@ -68,8 +68,8 @@ String ChaptersScreen::getChapterLabel(int index) const {
     return String("Chapter ") + String(index + 1);
   }
 
-  if (name.length() > 30) {
-    name = name.substring(0, 27) + "...";
+  if (name.length() > 40) {
+    name = name.substring(0, 37) + "...";
   }
   return name;
 }
@@ -123,7 +123,9 @@ void ChaptersScreen::render() {
     int idx = startIndex + i;
     String line = getChapterLabel(idx);
     if (idx == selectedIndex) {
-      line = String(">") + line + String("<");
+      line = String("> ") + line + String(" <");
+    } else {
+      line = String("  ") + line + String("  ");
     }
 
     int16_t x1, y1;
