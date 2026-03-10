@@ -26,5 +26,5 @@ generate_font Bookerly-Bold-Italic.ttf 26 bookerly Bookerly BoldItalic
 generate_font Bookerly-Bold-Italic.ttf 28 bookerly Bookerly BoldItalic
 generate_font Bookerly-Bold-Italic.ttf 30 bookerly Bookerly BoldItalic
 
-python scripts/generate_simplefont/cli.py --name MenuFontSmall --size 14 --chars-file resources/chars_input.txt --ttf resources/fonts/Retron2000.ttf --out src/resources/fonts/other/MenuFontSmall.h
-python scripts/generate_simplefont/cli.py --name MenuFontBig --size 32 --chars-file resources/chars_input.txt --ttf resources/fonts/Retron2000.ttf --out src/resources/fonts/other/MenuFontBig.h
+python scripts/generate_simplefont/cli.py --name MenuFontSmall --size 10 --chars-file resources/chars_input.txt --ttf resources/fonts/RobotoMono-SemiBold.ttf --out src/resources/fonts/other/MenuFontSmall.h
+python scripts/generate_simplefont/cli.py --name MenuFontBig --size 20 --chars-file resources/chars_input.txt --ttf resources/fonts/RobotoMono-SemiBold.ttf --out src/resources/fonts/other/MenuFontBig.h
