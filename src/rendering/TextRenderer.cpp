@@ -125,6 +125,30 @@ void TextRenderer::drawPixel(int16_t x, int16_t y, bool state) {
   }
 }
 
+void TextRenderer::drawRect(int16_t x, int16_t y, int16_t w, int16_t h, bool state) {
+  for (int i = x; i < x + w; i++) {
+    drawPixel(i, y, state);
+    drawPixel(i, y + h - 1, state);
+  }
+
+  for (int i = y; i < y + h; i++) {
+    drawPixel(x, i, state);
+    drawPixel(x + w, i, state);
+  }
+}
+
+void TextRenderer::drawRectIn(int16_t x, int16_t y, int16_t w, int16_t h, int16_t thickness, bool state) {
+  for (int i = 0; i < thickness; i++) {
+    drawRect(x + i, y + i, w - i * 2, h - i * 2, state);
+  }
+}
+
+void TextRenderer::drawRectOut(int16_t x, int16_t y, int16_t w, int16_t h, int16_t thickness, bool state) {
+  for (int i = 0; i < thickness; i++) {
+    drawRect(x - i, y - i, w + i * 2, h + i * 2, state);
+  }
+}
+
 void TextRenderer::setFrameBuffer(uint8_t* buffer) {
   frameBuffer = buffer;
 }

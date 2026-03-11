@@ -1165,7 +1165,7 @@ void UIManager::openTextFile(const String& sdPath) {
   textRenderer.setFont(getMainFont());
 
   {
-    const char* l1 = "Loading...";
+    const char* l1 = "Loading";
     const char* l2 = "(please wait)";
     int16_t x1, y1;
     uint16_t w1, h1;
@@ -1200,7 +1200,7 @@ void UIManager::openXtcFile(const String& sdPath) {
   textRenderer.setFont(getMainFont());
 
   {
-    const char* l1 = "Loading...";
+    const char* l1 = "Loading";
     const char* l2 = "(please wait)";
     int16_t x1, y1;
     uint16_t w1, h1;

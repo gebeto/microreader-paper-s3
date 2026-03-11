@@ -130,14 +130,7 @@ void FileBrowserScreen::renderSdBrowser() {
     if (displayNameRaw.length() > 40)
       displayNameRaw = displayNameRaw.substring(0, 37) + "...";
 
-    String displayName;
-    if (idx == sdSelectedIndex) {
-      // Show both left and right markers around the selection and center the whole string
-      displayName = String("> ") + displayNameRaw + String(" <");
-    } else {
-      displayName = String("  ") + displayNameRaw + String("  ");
-    }
-
+    String displayName = displayNameRaw;
     int16_t x1, y1;
     uint16_t w, h;
     textRenderer.getTextBounds(displayName.c_str(), 0, 0, &x1, &y1, &w, &h);
@@ -145,6 +138,9 @@ void FileBrowserScreen::renderSdBrowser() {
     int16_t rowY = startY + i * lineHeight;
     textRenderer.setCursor(centerX, rowY);
     textRenderer.print(displayName);
+    if (idx == sdSelectedIndex) {
+      textRenderer.drawRectOut(centerX - 3, rowY - h + 4, w + 6, h, 3, true);
+    }
   }
 
 }

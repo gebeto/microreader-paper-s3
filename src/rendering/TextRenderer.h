@@ -35,6 +35,9 @@ class TextRenderer {
 
   // Low-level pixel draw used by font blitting
   void drawPixel(int16_t x, int16_t y, bool state);
+  void drawRect(int16_t x, int16_t y, int16_t w, int16_t h, bool state);
+  void drawRectIn(int16_t x, int16_t y, int16_t w, int16_t h, int16_t thickness, bool state);
+  void drawRectOut(int16_t x, int16_t y, int16_t w, int16_t h, int16_t thickness, bool state);
 
   void setOrientation(Orientation o) {
     orientation = o;
