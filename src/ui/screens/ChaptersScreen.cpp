@@ -23,6 +23,11 @@ ChaptersScreen::ChaptersScreen(EInkDisplay& display, TextRenderer& renderer, UIM
 void ChaptersScreen::activate() {
   buildFilteredChapterList();
   selectedIndex = 0;
+  Screen* s = uiManager.getScreen(UIManager::ScreenId::TextViewer);
+  TextViewerScreen* tv = static_cast<TextViewerScreen*>(s);
+  if (tv && tv->getProvider()) {
+    selectedIndex = tv->getProvider()->getCurrentChapter();
+  }
 }
 
 void ChaptersScreen::handleButtons(Buttons& buttons) {

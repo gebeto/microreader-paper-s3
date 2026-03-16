@@ -64,6 +64,8 @@ class TextViewerScreen : public Screen {
   int pageStartIndex = 0;
   int pageEndIndex = 0;
 
+  WordProvider* getProvider() { return this->provider; };
+
  private:
   EInkDisplay& display;
   TextRenderer& textRenderer;
