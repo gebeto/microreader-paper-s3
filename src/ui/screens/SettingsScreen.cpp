@@ -252,6 +252,9 @@ void SettingsScreen::toggleCurrentSetting() {
     case 21:  // File Browser
       uiManager.showScreen(UIManager::ScreenId::FileBrowser);
       return;
+    case 22:  // Sleep
+      uiManager.showSleepScreen();
+      return;
   }
   saveSettings();
   show();
@@ -463,6 +466,8 @@ String SettingsScreen::getSettingName(int index) {
       return "Custom Font";
     case 21:
       return "File Browser";
+    case 22:
+      return "Show Sleep Screen";
     default:
       return "";
   }
@@ -564,6 +569,8 @@ String SettingsScreen::getSettingValue(int index) {
     case 20:
       return getCustomFontDisplayName();
     case 21:
+      return "Open";
+    case 22:
       return "Open";
     default:
       return "";

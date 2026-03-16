@@ -694,6 +694,8 @@ void UIManager::showSleepScreen() {
   
   free(decodedGrayLsb);
   free(decodedGrayMsb);
+
+  M5.Power.powerOff();
 #else
   // displayBuffer sends the back buffer to the controller AND swaps pointers.
   // After this call, the buffer containing the image is now the "active" front buffer.
