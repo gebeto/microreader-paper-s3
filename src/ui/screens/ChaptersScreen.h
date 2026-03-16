@@ -48,6 +48,7 @@ class ChaptersScreen : public Screen {
   static constexpr int MAX_CHAPTERS = 200;
   int filteredChapters[MAX_CHAPTERS];
   int filteredCount = 0;
+  int indexByUnfiltered[MAX_CHAPTERS];
 };
 
 #endif

@@ -272,8 +272,8 @@ TextViewerScreen::TextViewerScreen(EInkDisplay& display, TextRenderer& renderer,
                                    UIManager& uiManager)
     : display(display),
       textRenderer(renderer),
-      layoutStrategy(new KnuthPlassLayoutStrategy()),
-      // layoutStrategy(new GreedyLayoutStrategy()),
+      // layoutStrategy(new KnuthPlassLayoutStrategy()),
+      layoutStrategy(new GreedyLayoutStrategy()),
       sdManager(sdManager),
       uiManager(uiManager),
       buttonPrev(new TouchButton("Prev", 0, EInkDisplay::DISPLAY_HEIGHT - 60, 140, 60)),
@@ -626,6 +626,7 @@ void TextViewerScreen::goToChapterStart(int chapterIndex) {
 
   pageStartIndex = 0;
   pageEndIndex = 0;
+  savePositionToFile();
   showPage();
 }
 

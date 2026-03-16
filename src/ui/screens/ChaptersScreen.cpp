@@ -25,8 +25,8 @@ void ChaptersScreen::activate() {
   selectedIndex = 0;
   Screen* s = uiManager.getScreen(UIManager::ScreenId::TextViewer);
   TextViewerScreen* tv = static_cast<TextViewerScreen*>(s);
-  if (tv && tv->getProvider()) {
-    selectedIndex = tv->getProvider()->getCurrentChapter();
+  if (tv) {
+    selectedIndex = indexByUnfiltered[tv->getProvider()->getCurrentChapter()];
   }
 }
 
@@ -95,6 +95,7 @@ void ChaptersScreen::buildFilteredChapterList() {
 
   int totalChapters = tv->getChapterCount();
   for (int i = 0; i < totalChapters && filteredCount < MAX_CHAPTERS; i++) {
+    indexByUnfiltered[i] = filteredCount;
     if (!tv->isChapterEmpty(i)) {
       filteredChapters[filteredCount++] = i;
     }
