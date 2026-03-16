@@ -646,10 +646,12 @@ void TextViewerScreen::handleButtons(Buttons& buttons) {
         nextPage();
       } else if (buttonMiddle->overlap(touchX, touchY)) {
         Serial.printf("OPTIONS\n");
-        // Full refresh to clear any ghosting before showing settings
-        display.displayBuffer(EInkDisplay::FULL_REFRESH);
-        // Open settings
+
+        savePositionToFile();
+        saveSettingsToFile();
+
         uiManager.showScreen(UIManager::ScreenId::Settings);
+        display.displayBuffer(EInkDisplay::FULL_REFRESH);
       }
     }
   }

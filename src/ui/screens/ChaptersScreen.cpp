@@ -7,7 +7,18 @@
 #include "TextViewerScreen.h"
 
 ChaptersScreen::ChaptersScreen(EInkDisplay& display, TextRenderer& renderer, UIManager& uiManager)
-    : display(display), textRenderer(renderer), uiManager(uiManager) {}
+    : display(display),
+      textRenderer(renderer),
+      uiManager(uiManager),
+      buttonPrev(new TouchButton("↑", 180, EInkDisplay::DISPLAY_HEIGHT - 180, 180, 90)),
+      buttonNext(new TouchButton("↓", 180, EInkDisplay::DISPLAY_HEIGHT - 90, 180, 90)),
+      buttonSelect(new TouchButton("Select", 360, EInkDisplay::DISPLAY_HEIGHT - 180, 180, 180)),
+      buttonBack(new TouchButton("←", 0, EInkDisplay::DISPLAY_HEIGHT - 180, 180, 180)) {
+  buttonPrev->set_margin(10);
+  buttonNext->set_margin(10);
+  buttonSelect->set_margin(10);
+  buttonBack->set_margin(10);
+}
 
 void ChaptersScreen::activate() {
   buildFilteredChapterList();
@@ -15,6 +26,37 @@ void ChaptersScreen::activate() {
 }
 
 void ChaptersScreen::handleButtons(Buttons& buttons) {
+  int16_t touchX, touchY;
+  const bool touching = buttons.getTouchPosition(touchX, touchY);
+
+  if (touching) {
+    if (!touchPressed) {
+      Serial.printf("Press");
+      touchPressed = true;
+      if (buttonPrev->overlap(touchX, touchY)) {
+        Serial.printf("UP\n");
+        selectPrev();
+      } else if (buttonNext->overlap(touchX, touchY)) {
+        Serial.printf("DOWN\n");
+        selectNext();
+      } else if (buttonBack->overlap(touchX, touchY)) {
+        Serial.printf("BACK\n");
+        uiManager.showScreen(UIManager::ScreenId::Settings);
+      } else if (buttonSelect->overlap(touchX, touchY)) {
+        Serial.printf("SELECT\n");
+        confirm();
+      }
+    }
+  }
+
+  if (buttons.wasTouchReleased()) {
+    touchPressed = false;
+    lastTouchX = -1;
+    lastTouchY = -1;
+  }
+
+  return;
+
   if (buttons.isPressed(Buttons::BACK)) {
     uiManager.showScreen(UIManager::ScreenId::Settings);
   } else if (buttons.isPressed(Buttons::LEFT)) {
@@ -28,6 +70,10 @@ void ChaptersScreen::handleButtons(Buttons& buttons) {
 
 void ChaptersScreen::show() {
   render();
+  buttonPrev->render(textRenderer);
+  buttonSelect->render(textRenderer);
+  buttonNext->render(textRenderer);
+  buttonBack->render(textRenderer);
   display.displayBuffer(EInkDisplay::FAST_REFRESH);
 }
 
@@ -41,7 +87,7 @@ void ChaptersScreen::buildFilteredChapterList() {
   TextViewerScreen* tv = static_cast<TextViewerScreen*>(s);
   if (!tv)
     return;
-  
+
   int totalChapters = tv->getChapterCount();
   for (int i = 0; i < totalChapters && filteredCount < MAX_CHAPTERS; i++) {
     if (!tv->isChapterEmpty(i)) {
@@ -136,12 +182,6 @@ void ChaptersScreen::render() {
     textRenderer.setCursor(centerX, rowY);
     textRenderer.print(line);
   }
-
-  int buttonWidth = EINK_WIDTH / 3;
-  int buttonHeight = 100;
-  textRenderer.drawRect(0, EINK_HEIGHT - buttonHeight, buttonWidth, buttonHeight, true);
-  textRenderer.drawRect(buttonWidth, EINK_HEIGHT - buttonHeight, buttonWidth, buttonHeight, true);
-  textRenderer.drawRect(buttonWidth * 2, EINK_HEIGHT - buttonHeight, buttonWidth, buttonHeight, true);
 }
 
 void ChaptersScreen::selectNext() {

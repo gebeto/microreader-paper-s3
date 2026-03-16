@@ -28,8 +28,9 @@ class SettingsScreen : public Screen {
   int16_t lastTouchY = -1;
   bool touchPressed = false;
   TouchButton* buttonPrev;
-  TouchButton* buttonMiddle;
   TouchButton* buttonNext;
+  TouchButton* buttonSelect;
+  TouchButton* buttonBack;
 
   // Menu navigation
   int selectedIndex = 0;

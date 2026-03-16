@@ -21,14 +21,14 @@ SettingsScreen::SettingsScreen(EInkDisplay& display, TextRenderer& renderer, UIM
     : display(display),
       textRenderer(renderer),
       uiManager(uiManager),
-      buttonPrev(new TouchButton("Up", 0, EInkDisplay::DISPLAY_HEIGHT - 60, 140, 60)),
-      buttonMiddle(
-          new TouchButton("Select", 140, EInkDisplay::DISPLAY_HEIGHT - 60, EInkDisplay::DISPLAY_WIDTH - 140 * 2, 60)),
-      buttonNext(new TouchButton("Down", EInkDisplay::DISPLAY_WIDTH - 140, EInkDisplay::DISPLAY_HEIGHT - 60, 140, 60)) {
+      buttonPrev(new TouchButton("↑", 180, EInkDisplay::DISPLAY_HEIGHT - 180, 180, 90)),
+      buttonNext(new TouchButton("↓", 180, EInkDisplay::DISPLAY_HEIGHT - 90, 180, 90)),
+      buttonSelect(new TouchButton("Select", 360, EInkDisplay::DISPLAY_HEIGHT - 180, 180, 180)),
+      buttonBack(new TouchButton("←", 0, EInkDisplay::DISPLAY_HEIGHT - 180, 180, 180)) {
   buttonPrev->set_margin(10);
-  buttonMiddle->set_margin(5);
-  buttonMiddle->set_margin_x(0);
   buttonNext->set_margin(10);
+  buttonSelect->set_margin(10);
+  buttonBack->set_margin(10);
 }
 
 void SettingsScreen::begin() {
@@ -49,9 +49,14 @@ void SettingsScreen::handleButtons(Buttons& buttons) {
       } else if (buttonNext->overlap(touchX, touchY)) {
         Serial.printf("DOWN\n");
         selectNext();
-      } else if (buttonMiddle->overlap(touchX, touchY)) {
+      } else if (buttonSelect->overlap(touchX, touchY)) {
         Serial.printf("SELECT\n");
         toggleCurrentSetting();
+      } else if (buttonBack->overlap(touchX, touchY)) {
+        Serial.printf("BACK\n");
+        saveSettings();
+        // Return to the screen we came from
+        uiManager.showScreen(uiManager.getSettingsReturnScreen());
       }
     }
   }
@@ -82,6 +87,11 @@ void SettingsScreen::activate() {
 
 void SettingsScreen::show() {
   renderSettings();
+  buttonPrev->render(textRenderer);
+  buttonNext->render(textRenderer);
+  buttonSelect->render(textRenderer);
+  buttonBack->render(textRenderer);
+
   display.displayBuffer(EInkDisplay::FAST_REFRESH);
 }
 
