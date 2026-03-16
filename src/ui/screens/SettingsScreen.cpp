@@ -18,24 +18,61 @@ constexpr int SettingsScreen::refreshPassesValues[];
 constexpr int SettingsScreen::refreshFrequencyValues[];
 
 SettingsScreen::SettingsScreen(EInkDisplay& display, TextRenderer& renderer, UIManager& uiManager)
-    : display(display), textRenderer(renderer), uiManager(uiManager) {}
+    : display(display),
+      textRenderer(renderer),
+      uiManager(uiManager),
+      buttonPrev(new TouchButton("Up", 0, EInkDisplay::DISPLAY_HEIGHT - 60, 140, 60)),
+      buttonMiddle(
+          new TouchButton("Select", 140, EInkDisplay::DISPLAY_HEIGHT - 60, EInkDisplay::DISPLAY_WIDTH - 140 * 2, 60)),
+      buttonNext(new TouchButton("Down", EInkDisplay::DISPLAY_WIDTH - 140, EInkDisplay::DISPLAY_HEIGHT - 60, 140, 60)) {
+  buttonPrev->set_margin(10);
+  buttonMiddle->set_margin(5);
+  buttonMiddle->set_margin_x(0);
+  buttonNext->set_margin(10);
+}
 
 void SettingsScreen::begin() {
   loadSettings();
 }
 
 void SettingsScreen::handleButtons(Buttons& buttons) {
-  if (buttons.isPressed(Buttons::BACK)) {
-    saveSettings();
-    // Return to the screen we came from
-    uiManager.showScreen(uiManager.getSettingsReturnScreen());
-  } else if (buttons.isPressed(Buttons::LEFT)) {
-    selectNext();
-  } else if (buttons.isPressed(Buttons::RIGHT)) {
-    selectPrev();
-  } else if (buttons.isPressed(Buttons::CONFIRM)) {
-    toggleCurrentSetting();
+  int16_t touchX, touchY;
+  const bool touching = buttons.getTouchPosition(touchX, touchY);
+
+  if (touching) {
+    if (!touchPressed) {
+      Serial.printf("Press");
+      touchPressed = true;
+      if (buttonPrev->overlap(touchX, touchY)) {
+        Serial.printf("UP\n");
+        selectPrev();
+      } else if (buttonNext->overlap(touchX, touchY)) {
+        Serial.printf("DOWN\n");
+        selectNext();
+      } else if (buttonMiddle->overlap(touchX, touchY)) {
+        Serial.printf("SELECT\n");
+        toggleCurrentSetting();
+      }
+    }
   }
+
+  if (buttons.wasTouchReleased()) {
+    touchPressed = false;
+    lastTouchX = -1;
+    lastTouchY = -1;
+  }
+
+  // if (buttons.isPressed(Buttons::BACK)) {
+  //   saveSettings();
+  //   // Return to the screen we came from
+  //   uiManager.showScreen(uiManager.getSettingsReturnScreen());
+  // } else if (buttons.isPressed(Buttons::LEFT)) {
+  //   selectNext();
+  // } else if (buttons.isPressed(Buttons::RIGHT)) {
+  //   selectPrev();
+  // } else if (buttons.isPressed(Buttons::CONFIRM)) {
+  //   toggleCurrentSetting();
+  // }
 }
 
 void SettingsScreen::activate() {

@@ -8,11 +8,10 @@
 
 #include <cstring>
 
+#include "../../content/epub/epub_parser.h"
 #include "../../content/providers/EpubWordProvider.h"
 #include "../../content/providers/FileWordProvider.h"
 #include "../../content/providers/StringWordProvider.h"
-
-#include "../../content/epub/epub_parser.h"
 #include "../../core/Buttons.h"
 #include "../../core/SDCardManager.h"
 #include "../../core/Settings.h"
@@ -20,26 +19,28 @@
 #include "../../text/layout/GreedyLayoutStrategy.h"
 #include "../../text/layout/KnuthPlassLayoutStrategy.h"
 #include "SettingsScreen.h"
-#include "core/ImageDecoder.h"
 #include "core/EInkDisplay.h"
+#include "core/ImageDecoder.h"
 
 // Platform-aware framebuffer coordinate conversion (portrait logical -> physical)
 static inline bool portraitToFb_tv(int px, int py, int& outByteIdx, int& outBitIdx) {
 #ifdef USE_M5UNIFIED
-    // Paper S3: portrait framebuffer, no rotation
-    if (px < 0 || px >= (int)EInkDisplay::DISPLAY_WIDTH || py < 0 || py >= (int)EInkDisplay::DISPLAY_HEIGHT) return false;
-    const int widthBytes = (EInkDisplay::DISPLAY_WIDTH + 7) / 8;
-    outByteIdx = py * widthBytes + (px / 8);
-    outBitIdx = 7 - (px % 8);
-    return true;
+  // Paper S3: portrait framebuffer, no rotation
+  if (px < 0 || px >= (int)EInkDisplay::DISPLAY_WIDTH || py < 0 || py >= (int)EInkDisplay::DISPLAY_HEIGHT)
+    return false;
+  const int widthBytes = (EInkDisplay::DISPLAY_WIDTH + 7) / 8;
+  outByteIdx = py * widthBytes + (px / 8);
+  outBitIdx = 7 - (px % 8);
+  return true;
 #else
-    // ESP32-C3: landscape 800x480 physical, rotate portrait logical
-    const int fx = py;
-    const int fy = 479 - px;
-    if (fx < 0 || fx >= 800 || fy < 0 || fy >= 480) return false;
-    outByteIdx = (fy * 100) + (fx / 8);
-    outBitIdx = 7 - (fx % 8);
-    return true;
+  // ESP32-C3: landscape 800x480 physical, rotate portrait logical
+  const int fx = py;
+  const int fy = 479 - px;
+  if (fx < 0 || fx >= 800 || fy < 0 || fy >= 480)
+    return false;
+  outByteIdx = (fy * 100) + (fx / 8);
+  outBitIdx = 7 - (fx % 8);
+  return true;
 #endif
 }
 
@@ -80,7 +81,8 @@ static inline bool getFrameBufferPixelBit_tv(const uint8_t* fb, int px, int py) 
   return ((fb[byteIdx] >> bitIdx) & 1) != 0;
 }
 
-static bool writeBmp24TopDownFromPlanes_tv(const char* path, const uint8_t* lsb, const uint8_t* msb, uint16_t w, uint16_t h) {
+static bool writeBmp24TopDownFromPlanes_tv(const char* path, const uint8_t* lsb, const uint8_t* msb, uint16_t w,
+                                           uint16_t h) {
   if (!path || !lsb || !msb || w == 0 || h == 0) {
     return false;
   }
@@ -273,11 +275,15 @@ TextViewerScreen::TextViewerScreen(EInkDisplay& display, TextRenderer& renderer,
       layoutStrategy(new KnuthPlassLayoutStrategy()),
       // layoutStrategy(new GreedyLayoutStrategy()),
       sdManager(sdManager),
-      uiManager(uiManager) {
+      uiManager(uiManager),
+      buttonPrev(new TouchButton("Prev", 0, EInkDisplay::DISPLAY_HEIGHT - 60, 140, 60)),
+      buttonMiddle(
+          new TouchButton("", 140, EInkDisplay::DISPLAY_HEIGHT - 60, EInkDisplay::DISPLAY_WIDTH - 140 * 2, 60)),
+      buttonNext(new TouchButton("Next", EInkDisplay::DISPLAY_WIDTH - 140, EInkDisplay::DISPLAY_HEIGHT - 60, 140, 60)) {
   // Initialize layout config
   layoutConfig.marginLeft = 10;
   layoutConfig.marginRight = 10;
-  layoutConfig.marginTop = 4;
+  layoutConfig.marginTop = 0;
   layoutConfig.marginBottom = 24;
   layoutConfig.lineHeight = 30;
   layoutConfig.lineSpacing = 4;
@@ -287,6 +293,11 @@ TextViewerScreen::TextViewerScreen(EInkDisplay& display, TextRenderer& renderer,
   layoutConfig.pageHeight = EInkDisplay::DISPLAY_HEIGHT;
   layoutConfig.alignment = LayoutStrategy::ALIGN_LEFT;
   layoutConfig.language = Language::ENGLISH;  // Default to english hyphenation
+
+  buttonPrev->set_margin(10);
+  buttonMiddle->set_margin(5);
+  buttonMiddle->set_margin_x(0);
+  buttonNext->set_margin(10);
 
   // Set the language on the layout strategy
   layoutStrategy->setLanguage(layoutConfig.language);
@@ -473,7 +484,7 @@ bool TextViewerScreen::isChapterEmpty(int chapterIndex) const {
   if (!provider || !provider->hasChapters()) {
     return false;
   }
-  
+
   // Use cached list if available
   if (cachedNonEmptyCount >= 0) {
     for (int i = 0; i < cachedNonEmptyCount; i++) {
@@ -483,17 +494,17 @@ bool TextViewerScreen::isChapterEmpty(int chapterIndex) const {
     }
     return true;  // Not in non-empty list = empty
   }
-  
+
   // Fallback: check directly (slow path)
   int savedChapter = provider->getCurrentChapter();
   int savedIndex = provider->getCurrentIndex();
-  
+
   provider->setChapter(chapterIndex);
   bool hasContent = provider->hasNextWord();
-  
+
   provider->setChapter(savedChapter);
   provider->setPosition(savedIndex);
-  
+
   return !hasContent;
 }
 
@@ -502,23 +513,23 @@ void TextViewerScreen::buildNonEmptyChapterCache() {
     cachedNonEmptyCount = 0;
     return;
   }
-  
+
   // Try to load from file first
   if (loadChapterCacheFromFile()) {
     Serial.printf("[%lu] Loaded chapter cache from file: %d non-empty chapters\n", millis(), cachedNonEmptyCount);
     return;
   }
-  
+
   Serial.printf("[%lu] Building chapter cache...\n", millis());
   unsigned long startTime = millis();
-  
+
   // Show loading message to user
   display.clearScreen(0xFF);
   textRenderer.setFrameBuffer(display.getFrameBuffer());
   textRenderer.setBitmapType(TextRenderer::BITMAP_BW);
   textRenderer.setTextColor(TextRenderer::COLOR_BLACK);
   textRenderer.setFont(getMainFont());
-  
+
   const char* msg = "Building chapter cache...";
   int16_t x1, y1;
   uint16_t w, h;
@@ -528,41 +539,44 @@ void TextViewerScreen::buildNonEmptyChapterCache() {
   textRenderer.setCursor(centerX, centerY);
   textRenderer.print(msg);
   display.displayBuffer(EInkDisplay::FAST_REFRESH);
-  
+
   int savedChapter = provider->getCurrentChapter();
   int savedIndex = provider->getCurrentIndex();
-  
+
   cachedNonEmptyCount = 0;
   int totalChapters = provider->getChapterCount();
-  
+
   for (int i = 0; i < totalChapters && cachedNonEmptyCount < MAX_CACHED_CHAPTERS; i++) {
     provider->setChapter(i);
     if (provider->hasNextWord()) {
       cachedNonEmptyChapters[cachedNonEmptyCount++] = i;
     }
   }
-  
+
   // Restore state
   provider->setChapter(savedChapter);
   provider->setPosition(savedIndex);
-  
-  Serial.printf("[%lu] Built chapter cache: %d non-empty of %d total (%lu ms)\n", 
-                millis(), cachedNonEmptyCount, totalChapters, millis() - startTime);
-  
+
+  Serial.printf("[%lu] Built chapter cache: %d non-empty of %d total (%lu ms)\n", millis(), cachedNonEmptyCount,
+                totalChapters, millis() - startTime);
+
   // Save to file for next time
   saveChapterCacheToFile();
 }
 
 bool TextViewerScreen::loadChapterCacheFromFile() {
-  if (currentFilePath.length() == 0) return false;
-  
+  if (currentFilePath.length() == 0)
+    return false;
+
   String cachePath = currentFilePath + ".chapters";
   sdManager.ensureSpiBusIdle();
-  if (!SD.exists(cachePath.c_str())) return false;
-  
+  if (!SD.exists(cachePath.c_str()))
+    return false;
+
   File f = SD.open(cachePath.c_str(), FILE_READ);
-  if (!f) return false;
-  
+  if (!f)
+    return false;
+
   cachedNonEmptyCount = 0;
   while (f.available() && cachedNonEmptyCount < MAX_CACHED_CHAPTERS) {
     String line = f.readStringUntil('\n');
@@ -576,8 +590,9 @@ bool TextViewerScreen::loadChapterCacheFromFile() {
 }
 
 void TextViewerScreen::saveChapterCacheToFile() {
-  if (currentFilePath.length() == 0 || cachedNonEmptyCount <= 0) return;
-  
+  if (currentFilePath.length() == 0 || cachedNonEmptyCount <= 0)
+    return;
+
   String cachePath = currentFilePath + ".chapters";
   sdManager.ensureSpiBusIdle();
   File f = SD.open(cachePath.c_str(), FILE_WRITE);
@@ -585,7 +600,7 @@ void TextViewerScreen::saveChapterCacheToFile() {
     Serial.printf("[%lu] Failed to save chapter cache to %s\n", millis(), cachePath.c_str());
     return;
   }
-  
+
   for (int i = 0; i < cachedNonEmptyCount; i++) {
     f.println(cachedNonEmptyChapters[i]);
   }
@@ -616,6 +631,37 @@ void TextViewerScreen::goToChapterStart(int chapterIndex) {
 
 // Ensure member function is in class scope
 void TextViewerScreen::handleButtons(Buttons& buttons) {
+  int16_t touchX, touchY;
+  const bool touching = buttons.getTouchPosition(touchX, touchY);
+
+  if (touching) {
+    if (!touchPressed) {
+      Serial.printf("Press");
+      touchPressed = true;
+      if (buttonPrev->overlap(touchX, touchY)) {
+        Serial.printf("PREV PAGE\n");
+        prevPage();
+      } else if (buttonNext->overlap(touchX, touchY)) {
+        Serial.printf("NEXT PAGE\n");
+        nextPage();
+      } else if (buttonMiddle->overlap(touchX, touchY)) {
+        Serial.printf("OPTIONS\n");
+        // Full refresh to clear any ghosting before showing settings
+        display.displayBuffer(EInkDisplay::FULL_REFRESH);
+        // Open settings
+        uiManager.showScreen(UIManager::ScreenId::Settings);
+      }
+    }
+  }
+
+  if (buttons.wasTouchReleased()) {
+    touchPressed = false;
+    lastTouchX = -1;
+    lastTouchY = -1;
+  }
+
+  return;
+
   // Long press threshold in milliseconds
   const unsigned long LONG_PRESS_MS = 500;
 
@@ -674,6 +720,8 @@ void TextViewerScreen::showPage() {
   if (showCoverPage()) {
     return;  // Cover was displayed, don't show text
   }
+
+  Serial.printf("Settings marginTop(%d)", layoutConfig.marginTop);
 
   if (!provider) {
     // No provider available (no file open). Show a helpful message instead
@@ -782,15 +830,16 @@ void TextViewerScreen::showPage() {
 
     // Build indicator string with chapter info if available
     // Format: "Ch X/Y - Z%" or "ChapterName (X/Y) - Z%" or just "Z%"
-    String indicator;
+    String chapterName = "";
+    String indicator = "";
     if (provider->hasChapters() && provider->getChapterCount() > 1) {
-      String chapterName = provider->getCurrentChapterName();
+      chapterName = provider->getCurrentChapterName();
       if (!chapterName.isEmpty()) {
         // Truncate long chapter names
-        if (chapterName.length() > 30) {
-          chapterName = chapterName.substring(0, 27) + "...";
+        if (chapterName.length() > 50) {
+          chapterName = chapterName.substring(0, 47) + "...";
         }
-        indicator = chapterName;
+        // indicator = chapterName;
         if (showChapterNumbers) {
           int currentCh = provider->getCurrentChapter() + 1;  // 1-indexed for display
           int totalCh = provider->getChapterCount();
@@ -805,24 +854,38 @@ void TextViewerScreen::showPage() {
     }
     indicator += String(pagePercentage / 100) + "%";
 
-    int16_t x1, y1;
-    uint16_t w, h;
-    textRenderer.getTextBounds(indicator.c_str(), 0, 0, &x1, &y1, &w, &h);
-    int16_t centerX = (layoutConfig.pageWidth - (int)w) / 2;
-    // Position footer with padding from bottom edge
-    int16_t indicatorY = layoutConfig.pageHeight - kFooterPaddingBottom_tv - (int16_t)h;
-    Serial.printf("Footer: pageH=%d padding=%d h=%u -> Y=%d, centerX=%d, w=%u\n",
-                  layoutConfig.pageHeight, kFooterPaddingBottom_tv, h, indicatorY, centerX, w);
-    textRenderer.setCursor(centerX, indicatorY);
-    textRenderer.print(indicator);
+    {
+      int16_t x1, y1;
+      uint16_t w, h;
+      textRenderer.getTextBounds(chapterName.c_str(), 0, 0, &x1, &y1, &w, &h);
+      int16_t centerX = (layoutConfig.pageWidth - (int)w) / 2;
+      int16_t indicatorY = layoutConfig.pageHeight - kFooterPaddingBottom_tv - (int16_t)h;
+      textRenderer.setCursor(centerX, indicatorY - 13);
+      textRenderer.print(chapterName);
+    }
+
+    {
+      int16_t x1, y1;
+      uint16_t w, h;
+      textRenderer.getTextBounds(indicator.c_str(), 0, 0, &x1, &y1, &w, &h);
+      int16_t centerX = (layoutConfig.pageWidth - (int)w) / 2;
+      // Position footer with padding from bottom edge
+      int16_t indicatorY = layoutConfig.pageHeight - kFooterPaddingBottom_tv - (int16_t)h;
+      Serial.printf("Footer: pageH=%d padding=%d h=%u -> Y=%d, centerX=%d, w=%u\n", layoutConfig.pageHeight,
+                    kFooterPaddingBottom_tv, h, indicatorY, centerX, w);
+
+      textRenderer.setCursor(centerX, indicatorY + 3);
+      textRenderer.print(indicator);
+    }
   }
 
   // display bw parts
-  const bool doCondition = (refreshFrequency > 0) && (pageRenderCounter > 0) && ((pageRenderCounter % refreshFrequency) == 0);
-  textRenderer.drawRectIn(0, 0, 100, 100, 2, true);
-  textRenderer.setCursor(0, 100);
-  textRenderer.setFont(getTitleFont());
-  textRenderer.print(String(pageRenderCounter));
+  const bool doCondition =
+      (refreshFrequency > 0) && (pageRenderCounter > 0) && ((pageRenderCounter % refreshFrequency) == 0);
+
+  buttonPrev->render(textRenderer);
+  buttonMiddle->render(textRenderer);
+  buttonNext->render(textRenderer);
 
   display.displayBuffer(doCondition ? EInkDisplay::FULL_REFRESH : EInkDisplay::FAST_REFRESH);
 
@@ -870,7 +933,7 @@ void TextViewerScreen::nextPage() {
   // Check if there are more words in current chapter (use chapter percentage, not book percentage)
   uint32_t chapterPct = provider->getChapterPercentage(pageEndIndex);
   Serial.printf("nextPage: chapterPct=%u pageEndIndex=%d\n", (unsigned)chapterPct, pageEndIndex);
-  
+
   if (chapterPct < 10000) {
     provider->setPosition(pageEndIndex);
     showPage();
@@ -880,7 +943,7 @@ void TextViewerScreen::nextPage() {
       int currentChapter = provider->getCurrentChapter();
       int chapterCount = provider->getChapterCount();
       Serial.printf("nextPage: at end of chapter %d/%d, advancing...\n", currentChapter + 1, chapterCount);
-      
+
       // Find next non-empty chapter
       int nextChapter = currentChapter + 1;
       while (nextChapter < chapterCount) {
@@ -1119,29 +1182,35 @@ void TextViewerScreen::openFile(const String& sdPath) {
           const String lsbPath = base + String(".lsb");
           const String msbPath = base + String(".msb");
 
-          if (SD.exists(gcvPath.c_str()) && SD.exists(bwPath.c_str()) && SD.exists(lsbPath.c_str()) && SD.exists(msbPath.c_str())) {
+          if (SD.exists(gcvPath.c_str()) && SD.exists(bwPath.c_str()) && SD.exists(lsbPath.c_str()) &&
+              SD.exists(msbPath.c_str())) {
             s.setString(String("textviewer.lastCoverPath"), gcvPath);
             (void)s.save();
           } else {
             sdManager.ensureSpiBusIdle();
-            const bool bwDecodeOk = ImageDecoder::decodeToDisplayFitWidth(coverPath.c_str(), display.getFrameBuffer(), EInkDisplay::DISPLAY_WIDTH, EInkDisplay::DISPLAY_HEIGHT);
+            const bool bwDecodeOk = ImageDecoder::decodeToDisplayFitWidth(
+                coverPath.c_str(), display.getFrameBuffer(), EInkDisplay::DISPLAY_WIDTH, EInkDisplay::DISPLAY_HEIGHT);
             sdManager.ensureSpiBusIdle();
-            const bool bwOk = bwDecodeOk &&
-                              writeRawBufferToFile_tv(bwPath.c_str(), display.getFrameBuffer(), EInkDisplay::BUFFER_SIZE);
+            const bool bwOk = bwDecodeOk && writeRawBufferToFile_tv(bwPath.c_str(), display.getFrameBuffer(),
+                                                                    EInkDisplay::BUFFER_SIZE);
 
             uint8_t* mask = (uint8_t*)heap_caps_malloc(EInkDisplay::BUFFER_SIZE, MALLOC_CAP_8BIT);
             if (bwOk && mask) {
               memset(mask, 0x00, EInkDisplay::BUFFER_SIZE);
               const bool lsbDecodeOk = ImageDecoder::decodeToDisplayFitWidth(
-                  coverPath.c_str(), display.getFrameBuffer(), EInkDisplay::DISPLAY_WIDTH, EInkDisplay::DISPLAY_HEIGHT, mask, nullptr);
+                  coverPath.c_str(), display.getFrameBuffer(), EInkDisplay::DISPLAY_WIDTH, EInkDisplay::DISPLAY_HEIGHT,
+                  mask, nullptr);
               sdManager.ensureSpiBusIdle();
-              const bool lsbOk = lsbDecodeOk && writeRawBufferToFile_tv(lsbPath.c_str(), mask, EInkDisplay::BUFFER_SIZE);
+              const bool lsbOk =
+                  lsbDecodeOk && writeRawBufferToFile_tv(lsbPath.c_str(), mask, EInkDisplay::BUFFER_SIZE);
 
               memset(mask, 0x00, EInkDisplay::BUFFER_SIZE);
               const bool msbDecodeOk = ImageDecoder::decodeToDisplayFitWidth(
-                  coverPath.c_str(), display.getFrameBuffer(), EInkDisplay::DISPLAY_WIDTH, EInkDisplay::DISPLAY_HEIGHT, nullptr, mask);
+                  coverPath.c_str(), display.getFrameBuffer(), EInkDisplay::DISPLAY_WIDTH, EInkDisplay::DISPLAY_HEIGHT,
+                  nullptr, mask);
               sdManager.ensureSpiBusIdle();
-              const bool msbOk = msbDecodeOk && writeRawBufferToFile_tv(msbPath.c_str(), mask, EInkDisplay::BUFFER_SIZE);
+              const bool msbOk =
+                  msbDecodeOk && writeRawBufferToFile_tv(msbPath.c_str(), mask, EInkDisplay::BUFFER_SIZE);
 
               free(mask);
 
@@ -1313,23 +1382,23 @@ void TextViewerScreen::showErrorMessage(const char* msg) {
 void TextViewerScreen::loadCustomFont() {
   Settings& s = uiManager.getSettings();
   String fontPath = s.getString(String("settings.customFont"));
-  
+
   Serial.printf("[%lu] TextViewerScreen::loadCustomFont: path='%s'\n", millis(), fontPath.c_str());
-  
+
   if (fontPath.length() == 0) {
     // No custom font configured
     unloadCustomFont();
     return;
   }
-  
+
   // Check if font path changed
   if (fontPath == customFontPath && ttfRenderer != nullptr) {
     return;  // Already loaded
   }
-  
+
   // Unload previous font
   unloadCustomFont();
-  
+
   // Load new font
   Serial.printf("[%lu] TextViewerScreen: Loading custom font: %s\n", millis(), fontPath.c_str());
   ttfRenderer = new TrueTypeRenderer(display);
@@ -1361,36 +1430,39 @@ void TextViewerScreen::renderPageWithTtf(const LayoutStrategy::PageLayout& layou
     Serial.printf("[%lu] renderPageWithTtf: no ttfRenderer\n", millis());
     return;
   }
-  
+
   // Map font size index to TTF character size
   // settings.fontSize stores index: 0=Small, 1=Medium, 2=Large, 3=XL, 4=XXL
   // Bitmap fonts are: 26pt, 28pt, 30pt, 32pt, 34pt
   static const uint16_t ttfSizes[] = {26, 28, 30, 32, 34};
-  
+
   Settings& s = uiManager.getSettings();
   int fontSizeIndex = 1;  // Default to Medium
   s.getInt(String("settings.fontSize"), fontSizeIndex);
-  if (fontSizeIndex < 0 || fontSizeIndex > 4) fontSizeIndex = 1;
+  if (fontSizeIndex < 0 || fontSizeIndex > 4)
+    fontSizeIndex = 1;
   uint16_t ttfSize = ttfSizes[fontSizeIndex];
-  
+
   ttfRenderer->setCharacterSize(ttfSize);
   ttfRenderer->setTextColor(0);  // Black
-  
+
   int lineCount = 0;
   for (const auto& line : layout.lines) {
-    if (line.words.empty()) continue;
-    
+    if (line.words.empty())
+      continue;
+
     // Build the full line text with spaces between words
     String lineText;
     for (size_t i = 0; i < line.words.size(); i++) {
-      if (i > 0) lineText += " ";
+      if (i > 0)
+        lineText += " ";
       lineText += line.words[i].text;
     }
-    
+
     // Use the first word's position as the line start
     int16_t lineX = line.words[0].x;
     int16_t lineY = line.words[0].y;
-    
+
     ttfRenderer->drawText(lineX, lineY, lineText.c_str());
     lineCount++;
   }
@@ -1400,9 +1472,11 @@ void TextViewerScreen::renderPageWithTtf(const LayoutStrategy::PageLayout& layou
 bool TextViewerScreen::showCoverPage() {
   // Only show cover if showingCover flag is set
   // This flag is set on initial book open and when navigating back from first page
-  if (!showingCover) return false;
-  if (!provider) return false;
-  
+  if (!showingCover)
+    return false;
+  if (!provider)
+    return false;
+
   // Check if book cover display is enabled
   Settings& s = uiManager.getSettings();
   int showBookCover = 1;
@@ -1411,39 +1485,39 @@ bool TextViewerScreen::showCoverPage() {
     showingCover = false;
     return false;
   }
-  
+
   // Check if this provider has a cover
   String coverPath = provider->getCoverImagePath(true);
   if (coverPath.length() == 0 || !SD.exists(coverPath.c_str())) {
     showingCover = false;
     return false;
   }
-  
+
   Serial.printf("[%lu] showCoverPage: displaying cover %s\n", millis(), coverPath.c_str());
-  
+
   // Check cover quality setting (reuse s from above)
   int coverQuality = 1;  // Default to grayscale
   s.getInt(String("settings.coverQuality"), coverQuality);
-  
+
   display.clearScreen(0xFF);
-  
+
   String lf = coverPath;
   lf.toLowerCase();
   bool isJpgPng = lf.endsWith(".jpg") || lf.endsWith(".jpeg") || lf.endsWith(".png");
-  
+
   if (coverQuality == 1 && isJpgPng && display.supportsGrayscale()) {
     // Grayscale rendering (2-bit)
     Serial.printf("[%lu] showCoverPage: using grayscale rendering\n", millis());
-    
+
     uint8_t* grayLsb = (uint8_t*)heap_caps_malloc(EInkDisplay::BUFFER_SIZE, MALLOC_CAP_8BIT);
     uint8_t* grayMsb = (uint8_t*)heap_caps_malloc(EInkDisplay::BUFFER_SIZE, MALLOC_CAP_8BIT);
-    
+
     if (grayLsb && grayMsb) {
       memset(grayLsb, 0xFF, EInkDisplay::BUFFER_SIZE);
       memset(grayMsb, 0xFF, EInkDisplay::BUFFER_SIZE);
-      
-      if (ImageDecoder::decodeToDisplayFitWidth(coverPath.c_str(), display.getFrameBuffer(),
-          EInkDisplay::DISPLAY_WIDTH, EInkDisplay::DISPLAY_HEIGHT, grayLsb, grayMsb)) {
+
+      if (ImageDecoder::decodeToDisplayFitWidth(coverPath.c_str(), display.getFrameBuffer(), EInkDisplay::DISPLAY_WIDTH,
+                                                EInkDisplay::DISPLAY_HEIGHT, grayLsb, grayMsb)) {
         display.copyGrayscaleBuffers(grayLsb, grayMsb);
         display.displayGrayBuffer(true);
       } else {
@@ -1452,21 +1526,21 @@ bool TextViewerScreen::showCoverPage() {
       }
     } else {
       Serial.printf("[%lu] showCoverPage: OOM for grayscale buffers\n", millis());
-      ImageDecoder::decodeToDisplayFitWidth(coverPath.c_str(), display.getFrameBuffer(),
-          EInkDisplay::DISPLAY_WIDTH, EInkDisplay::DISPLAY_HEIGHT);
+      ImageDecoder::decodeToDisplayFitWidth(coverPath.c_str(), display.getFrameBuffer(), EInkDisplay::DISPLAY_WIDTH,
+                                            EInkDisplay::DISPLAY_HEIGHT);
       display.displayBuffer(EInkDisplay::FULL_REFRESH);
     }
-    
+
     free(grayLsb);
     free(grayMsb);
   } else {
     // Standard 1-bit rendering
     Serial.printf("[%lu] showCoverPage: using standard BW rendering\n", millis());
-    ImageDecoder::decodeToDisplayFitWidth(coverPath.c_str(), display.getFrameBuffer(),
-        EInkDisplay::DISPLAY_WIDTH, EInkDisplay::DISPLAY_HEIGHT);
+    ImageDecoder::decodeToDisplayFitWidth(coverPath.c_str(), display.getFrameBuffer(), EInkDisplay::DISPLAY_WIDTH,
+                                          EInkDisplay::DISPLAY_HEIGHT);
     display.displayBuffer(EInkDisplay::FULL_REFRESH);
   }
-  
+
   showingCover = true;
   return true;
 }

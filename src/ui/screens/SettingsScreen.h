@@ -2,6 +2,7 @@
 #define SETTINGSSCREEN_H
 
 #include "../../core/EInkDisplay.h"
+#include "../../core/TouchButton.h"
 #include "../../rendering/TextRenderer.h"
 #include "Screen.h"
 
@@ -22,6 +23,13 @@ class SettingsScreen : public Screen {
   EInkDisplay& display;
   TextRenderer& textRenderer;
   UIManager& uiManager;
+
+  int16_t lastTouchX = -1;
+  int16_t lastTouchY = -1;
+  bool touchPressed = false;
+  TouchButton* buttonPrev;
+  TouchButton* buttonMiddle;
+  TouchButton* buttonNext;
 
   // Menu navigation
   int selectedIndex = 0;

@@ -4,6 +4,7 @@
 #include "../../content/providers/StringWordProvider.h"
 #include "../../core/EInkDisplay.h"
 #include "../../core/SDCardManager.h"
+#include "../../core/TouchButton.h"
 #include "../../rendering/TextRenderer.h"
 #include "../../rendering/TrueTypeRenderer.h"
 #include "../../text/layout/LayoutStrategy.h"
@@ -12,6 +13,13 @@
 
 class TextViewerScreen : public Screen {
  public:
+  int16_t lastTouchX = -1;
+  int16_t lastTouchY = -1;
+  bool touchPressed = false;
+  TouchButton* buttonPrev;
+  TouchButton* buttonMiddle;
+  TouchButton* buttonNext;
+
   TextViewerScreen(EInkDisplay& display, TextRenderer& renderer, SDCardManager& sdManager, UIManager& uiManager);
   ~TextViewerScreen();
 
