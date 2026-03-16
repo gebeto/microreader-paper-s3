@@ -819,6 +819,11 @@ void TextViewerScreen::showPage() {
 
   // display bw parts
   const bool doCondition = (refreshFrequency > 0) && (pageRenderCounter > 0) && ((pageRenderCounter % refreshFrequency) == 0);
+  textRenderer.drawRectIn(0, 0, 100, 100, 2, true);
+  textRenderer.setCursor(0, 100);
+  textRenderer.setFont(getTitleFont());
+  textRenderer.print(String(pageRenderCounter));
+
   display.displayBuffer(doCondition ? EInkDisplay::FULL_REFRESH : EInkDisplay::FAST_REFRESH);
 
   // Grayscale rendering only for bitmap fonts (TTF doesn't support grayscale bitmaps)

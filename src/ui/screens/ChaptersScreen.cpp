@@ -136,6 +136,12 @@ void ChaptersScreen::render() {
     textRenderer.setCursor(centerX, rowY);
     textRenderer.print(line);
   }
+
+  int buttonWidth = EINK_WIDTH / 3;
+  int buttonHeight = 100;
+  textRenderer.drawRect(0, EINK_HEIGHT - buttonHeight, buttonWidth, buttonHeight, true);
+  textRenderer.drawRect(buttonWidth, EINK_HEIGHT - buttonHeight, buttonWidth, buttonHeight, true);
+  textRenderer.drawRect(buttonWidth * 2, EINK_HEIGHT - buttonHeight, buttonWidth, buttonHeight, true);
 }
 
 void ChaptersScreen::selectNext() {
