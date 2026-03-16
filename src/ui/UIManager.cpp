@@ -346,6 +346,7 @@ void UIManager::startAutoNtpSyncIfEnabled() {
 void UIManager::handleButtons() {
   // Pass buttons to the current screen
   // Directly forward to the active screen (must exist)
+  buttons.update();
   screens[currentScreen]->handleButtons(buttons);
 }
 
@@ -1265,7 +1266,8 @@ void UIManager::showScreen(ScreenId id) {
 
   // Disable 3-zone touch navigation while the on-screen keyboard is active.
   // This prevents edge taps from being interpreted as LEFT/RIGHT/CONFIRM.
-  buttons.setZoneNavigationEnabled(id != ScreenId::WifiPasswordEntry);
+  // buttons.setZoneNavigationEnabled(id != ScreenId::WifiPasswordEntry);
+  buttons.setZoneNavigationEnabled(false);
 
   previousScreen = currentScreen;
   currentScreen = id;

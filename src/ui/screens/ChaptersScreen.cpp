@@ -114,8 +114,8 @@ String ChaptersScreen::getChapterLabel(int index) const {
     return String("Chapter ") + String(index + 1);
   }
 
-  if (name.length() > 40) {
-    name = name.substring(0, 37) + "...";
+  if (name.length() > 60) {
+    name = name.substring(0, 57) + "...";
   }
   return name;
 }
@@ -153,7 +153,7 @@ void ChaptersScreen::render() {
   }
 
   const int lineHeight = 28;
-  int maxLines = 16;
+  int maxLines = 24;
   if (count < maxLines)
     maxLines = count;
 
@@ -163,21 +163,22 @@ void ChaptersScreen::render() {
   }
 
   int totalHeight = maxLines * lineHeight;
-  int startY = (pageH - totalHeight) / 2;
+  int startY = 120;
 
   for (int i = 0; i < maxLines; ++i) {
     int idx = startIndex + i;
     String line = getChapterLabel(idx);
     if (idx == selectedIndex) {
-      line = String("> ") + line + String(" <");
+      line = String("> ") + line;
     } else {
-      line = String("  ") + line + String("  ");
+      line = String("  ") + line;
     }
 
     int16_t x1, y1;
     uint16_t w, h;
     textRenderer.getTextBounds(line.c_str(), 0, 0, &x1, &y1, &w, &h);
-    int16_t centerX = (pageW - (int)w) / 2;
+    // int16_t centerX = (pageW - (int)w) / 2;
+    int16_t centerX = 10;
     int16_t rowY = startY + i * lineHeight;
     textRenderer.setCursor(centerX, rowY);
     textRenderer.print(line);

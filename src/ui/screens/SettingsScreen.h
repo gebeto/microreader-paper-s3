@@ -34,7 +34,7 @@ class SettingsScreen : public Screen {
 
   // Menu navigation
   int selectedIndex = 0;
-  static constexpr int SETTINGS_COUNT = 21;
+  static constexpr int SETTINGS_COUNT = 22;
 
   // Setting values and their current indices
   int marginIndex = 1;

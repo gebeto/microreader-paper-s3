@@ -55,7 +55,9 @@ void SettingsScreen::handleButtons(Buttons& buttons) {
       } else if (buttonBack->overlap(touchX, touchY)) {
         Serial.printf("BACK\n");
         saveSettings();
+
         // Return to the screen we came from
+        // display.displayBuffer(EInkDisplay::FULL_REFRESH);
         uiManager.showScreen(uiManager.getSettingsReturnScreen());
       }
     }
@@ -66,18 +68,6 @@ void SettingsScreen::handleButtons(Buttons& buttons) {
     lastTouchX = -1;
     lastTouchY = -1;
   }
-
-  // if (buttons.isPressed(Buttons::BACK)) {
-  //   saveSettings();
-  //   // Return to the screen we came from
-  //   uiManager.showScreen(uiManager.getSettingsReturnScreen());
-  // } else if (buttons.isPressed(Buttons::LEFT)) {
-  //   selectNext();
-  // } else if (buttons.isPressed(Buttons::RIGHT)) {
-  //   selectPrev();
-  // } else if (buttons.isPressed(Buttons::CONFIRM)) {
-  //   toggleCurrentSetting();
-  // }
 }
 
 void SettingsScreen::activate() {
@@ -166,6 +156,7 @@ void SettingsScreen::toggleCurrentSetting() {
   switch (selectedIndex) {
     case 0:  // TOC
       saveSettings();
+      display.displayBuffer(EInkDisplay::FULL_REFRESH);
       uiManager.showScreen(UIManager::ScreenId::Chapters);
       return;
       break;
@@ -257,6 +248,9 @@ void SettingsScreen::toggleCurrentSetting() {
     case 20:  // Custom Font
       saveSettings();
       uiManager.showScreen(UIManager::ScreenId::FontSelect);
+      return;
+    case 21:  // File Browser
+      uiManager.showScreen(UIManager::ScreenId::FileBrowser);
       return;
   }
   saveSettings();
@@ -467,6 +461,8 @@ String SettingsScreen::getSettingName(int index) {
       return "Refresh Frequency";
     case 20:
       return "Custom Font";
+    case 21:
+      return "File Browser";
     default:
       return "";
   }
@@ -567,6 +563,8 @@ String SettingsScreen::getSettingValue(int index) {
       return String(refreshFrequencyValues[refreshFrequencyIndex]);
     case 20:
       return getCustomFontDisplayName();
+    case 21:
+      return "Open";
     default:
       return "";
   }

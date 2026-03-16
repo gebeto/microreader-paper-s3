@@ -641,17 +641,19 @@ void TextViewerScreen::handleButtons(Buttons& buttons) {
       if (buttonPrev->overlap(touchX, touchY)) {
         Serial.printf("PREV PAGE\n");
         prevPage();
+        savePositionToFile();
       } else if (buttonNext->overlap(touchX, touchY)) {
         Serial.printf("NEXT PAGE\n");
         nextPage();
+        savePositionToFile();
       } else if (buttonMiddle->overlap(touchX, touchY)) {
         Serial.printf("OPTIONS\n");
 
         savePositionToFile();
         saveSettingsToFile();
 
+        // display.displayBuffer(EInkDisplay::FULL_REFRESH);
         uiManager.showScreen(UIManager::ScreenId::Settings);
-        display.displayBuffer(EInkDisplay::FULL_REFRESH);
       }
     }
   }
@@ -838,8 +840,8 @@ void TextViewerScreen::showPage() {
       chapterName = provider->getCurrentChapterName();
       if (!chapterName.isEmpty()) {
         // Truncate long chapter names
-        if (chapterName.length() > 50) {
-          chapterName = chapterName.substring(0, 47) + "...";
+        if (chapterName.length() > 42) {
+          chapterName = chapterName.substring(0, 39) + "...";
         }
         // indicator = chapterName;
         if (showChapterNumbers) {
@@ -862,7 +864,7 @@ void TextViewerScreen::showPage() {
       textRenderer.getTextBounds(chapterName.c_str(), 0, 0, &x1, &y1, &w, &h);
       int16_t centerX = (layoutConfig.pageWidth - (int)w) / 2;
       int16_t indicatorY = layoutConfig.pageHeight - kFooterPaddingBottom_tv - (int16_t)h;
-      textRenderer.setCursor(centerX, indicatorY - 13);
+      textRenderer.setCursor(centerX, indicatorY - 7);
       textRenderer.print(chapterName);
     }
 
@@ -876,7 +878,7 @@ void TextViewerScreen::showPage() {
       Serial.printf("Footer: pageH=%d padding=%d h=%u -> Y=%d, centerX=%d, w=%u\n", layoutConfig.pageHeight,
                     kFooterPaddingBottom_tv, h, indicatorY, centerX, w);
 
-      textRenderer.setCursor(centerX, indicatorY + 3);
+      textRenderer.setCursor(centerX, indicatorY + 13);
       textRenderer.print(indicator);
     }
   }
