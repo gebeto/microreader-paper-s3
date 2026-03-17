@@ -15,6 +15,12 @@ TouchButton::TouchButton(String title, int16_t x, int16_t y, int16_t w, int16_t 
   this->h = h;
 }
 
+void TouchButton::set_icon(const unsigned char* Icon, uint16_t w, uint16_t h) {
+  this->Icon = Icon;
+  this->Icon_w = w;
+  this->Icon_h = h;
+}
+
 void TouchButton::set_margin(uint16_t margin) {
   this->margin_x = margin;
   this->margin_y = margin;
@@ -44,4 +50,10 @@ void TouchButton::render(TextRenderer& textRenderer) {
   textRenderer.setCursor(centerX, indicatorY);
   textRenderer.print(title);
   // textRenderer.drawRect(centerX, indicatorY - textH, textW, textH, 1);
+
+  if (this->Icon && this->Icon_w && this->Icon_h) {
+    int iconCenterX = x + this->w/2 - this->Icon_w/2 + 4;
+    int iconCenterY = y + this->h/2 - this->Icon_h/2;
+    textRenderer.drawImage(this->Icon, iconCenterX, iconCenterY, this->Icon_w, this->Icon_h);
+  }
 }

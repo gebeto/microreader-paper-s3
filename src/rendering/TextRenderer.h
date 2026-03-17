@@ -38,6 +38,7 @@ class TextRenderer {
   void drawRect(int16_t x, int16_t y, int16_t w, int16_t h, bool state);
   void drawRectIn(int16_t x, int16_t y, int16_t w, int16_t h, int16_t thickness, bool state);
   void drawRectOut(int16_t x, int16_t y, int16_t w, int16_t h, int16_t thickness, bool state);
+  void drawImage(const uint8_t* imageData, uint16_t x, uint16_t y, uint16_t w, uint16_t h);
 
   void setOrientation(Orientation o) {
     orientation = o;

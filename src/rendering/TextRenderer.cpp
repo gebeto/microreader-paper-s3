@@ -149,6 +149,10 @@ void TextRenderer::drawRectOut(int16_t x, int16_t y, int16_t w, int16_t h, int16
   }
 }
 
+void TextRenderer::drawImage(const uint8_t* imageData, uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
+  display.drawImage(imageData, x, y, w, h, true);
+}
+
 void TextRenderer::setFrameBuffer(uint8_t* buffer) {
   frameBuffer = buffer;
 }

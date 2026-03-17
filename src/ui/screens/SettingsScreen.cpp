@@ -9,6 +9,7 @@
 #include "../../core/BatteryMonitor.h"
 #include "../../core/Buttons.h"
 #include "../../core/Settings.h"
+#include "../../resources/images/turn_off.h"
 #include "../UIManager.h"
 
 constexpr int SettingsScreen::marginValues[];
@@ -21,10 +22,13 @@ SettingsScreen::SettingsScreen(EInkDisplay& display, TextRenderer& renderer, UIM
     : display(display),
       textRenderer(renderer),
       uiManager(uiManager),
+      buttonPowerOff(new TouchButton("", 8, 112, 64, 64)),
       buttonPrev(new TouchButton("↑", 180, EInkDisplay::DISPLAY_HEIGHT - 180, 180, 90)),
       buttonNext(new TouchButton("↓", 180, EInkDisplay::DISPLAY_HEIGHT - 90, 180, 90)),
       buttonSelect(new TouchButton("Select", 360, EInkDisplay::DISPLAY_HEIGHT - 180, 180, 180)),
       buttonBack(new TouchButton("←", 0, EInkDisplay::DISPLAY_HEIGHT - 180, 180, 180)) {
+  buttonPowerOff->set_icon(TurnOffIconBitmap, TURNOFFICONBITMAP_WIDTH, TURNOFFICONBITMAP_HEIGHT);
+  buttonPowerOff->set_margin(5);
   buttonPrev->set_margin(10);
   buttonNext->set_margin(10);
   buttonSelect->set_margin(10);
@@ -59,6 +63,9 @@ void SettingsScreen::handleButtons(Buttons& buttons) {
         // Return to the screen we came from
         // display.displayBuffer(EInkDisplay::FULL_REFRESH);
         uiManager.showScreen(uiManager.getSettingsReturnScreen());
+      } else if (buttonPowerOff->overlap(touchX, touchY)) {
+        Serial.printf("TURN OFF\n");
+        uiManager.showSleepScreen();
       }
     }
   }
@@ -77,6 +84,8 @@ void SettingsScreen::activate() {
 
 void SettingsScreen::show() {
   renderSettings();
+
+  buttonPowerOff->render(textRenderer);
   buttonPrev->render(textRenderer);
   buttonNext->render(textRenderer);
   buttonSelect->render(textRenderer);

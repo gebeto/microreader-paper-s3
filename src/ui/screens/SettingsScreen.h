@@ -27,6 +27,7 @@ class SettingsScreen : public Screen {
   int16_t lastTouchX = -1;
   int16_t lastTouchY = -1;
   bool touchPressed = false;
+  TouchButton* buttonPowerOff;
   TouchButton* buttonPrev;
   TouchButton* buttonNext;
   TouchButton* buttonSelect;
