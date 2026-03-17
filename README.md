@@ -209,3 +209,9 @@ The Settings manager is implemented in `src/core/Settings.{h,cpp}`.
 `scripts/lut_editor.py` - Visual editor for e-ink display waveform lookup tables
 - Edit voltage patterns and timing groups
 - Configure display refresh settings
+
+
+## Thanks this project for making it possible
+
+https://github.com/CidVonHighwind/microreader
+https://github.com/juicecultus/macroreader
