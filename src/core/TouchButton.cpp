@@ -21,6 +21,10 @@ void TouchButton::set_icon(const unsigned char* Icon, uint16_t w, uint16_t h) {
   this->Icon_h = h;
 }
 
+void TouchButton::set_border_width(uint16_t border_width) {
+  this->border_width = border_width;
+}
+
 void TouchButton::set_margin(uint16_t margin) {
   this->margin_x = margin;
   this->margin_y = margin;
@@ -39,7 +43,7 @@ bool TouchButton::overlap(int16_t touchX, int16_t touchY) {
 }
 
 void TouchButton::render(TextRenderer& textRenderer) {
-  textRenderer.drawRectIn(x + margin_x, y + margin_y, w - margin_x * 2, h - margin_y * 2, 2, true);
+  textRenderer.drawRectIn(x + margin_x, y + margin_y, w - margin_x * 2, h - margin_y * 2, this->border_width, true);
 
   int16_t textX, textY;
   uint16_t textW, textH;

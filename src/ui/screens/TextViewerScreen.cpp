@@ -276,10 +276,10 @@ TextViewerScreen::TextViewerScreen(EInkDisplay& display, TextRenderer& renderer,
       // layoutStrategy(new GreedyLayoutStrategy()),
       sdManager(sdManager),
       uiManager(uiManager),
-      buttonPrev(new TouchButton("Prev", 0, EInkDisplay::DISPLAY_HEIGHT - 60, 140, 60)),
+      buttonPrev(new TouchButton("←", 0, EInkDisplay::DISPLAY_HEIGHT - 60, 140, 60)),
       buttonMiddle(
           new TouchButton("", 140, EInkDisplay::DISPLAY_HEIGHT - 60, EInkDisplay::DISPLAY_WIDTH - 140 * 2, 60)),
-      buttonNext(new TouchButton("Next", EInkDisplay::DISPLAY_WIDTH - 140, EInkDisplay::DISPLAY_HEIGHT - 60, 140, 60)) {
+      buttonNext(new TouchButton("→", EInkDisplay::DISPLAY_WIDTH - 140, EInkDisplay::DISPLAY_HEIGHT - 60, 140, 60)) {
   // Initialize layout config
   layoutConfig.marginLeft = 10;
   layoutConfig.marginRight = 10;
@@ -294,10 +294,9 @@ TextViewerScreen::TextViewerScreen(EInkDisplay& display, TextRenderer& renderer,
   layoutConfig.alignment = LayoutStrategy::ALIGN_LEFT;
   layoutConfig.language = Language::ENGLISH;  // Default to english hyphenation
 
-  buttonPrev->set_margin(10);
-  buttonMiddle->set_margin(5);
-  buttonMiddle->set_margin_x(0);
-  buttonNext->set_margin(10);
+  buttonPrev->set_border_width(0);
+  buttonNext->set_border_width(0);
+  buttonMiddle->set_border_width(0);
 
   // Set the language on the layout strategy
   layoutStrategy->setLanguage(layoutConfig.language);
@@ -887,7 +886,7 @@ void TextViewerScreen::showPage() {
   // display bw parts
   const bool doCondition =
       (refreshFrequency > 0) && (pageRenderCounter > 0) && ((pageRenderCounter % refreshFrequency) == 0);
-    
+
   // textRenderer.fillRect(0, EINK_HEIGHT - 100, display.DISPLAY_WIDTH, 100, false);
   // textRenderer.drawRect(0, EINK_HEIGHT - 100, display.DISPLAY_WIDTH, 100, true);
 
