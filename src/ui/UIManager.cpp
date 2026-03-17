@@ -633,7 +633,7 @@ void UIManager::showSleepScreen() {
     textRenderer.setTextColor(TextRenderer::COLOR_BLACK);
     textRenderer.setFont(getMainFont());
 
-    const char* sleepText = "Sleeping...";
+    const char* sleepText = "Sleeping";
     int16_t x1, y1;
     uint16_t w, h;
     textRenderer.getTextBounds(sleepText, 0, 0, &x1, &y1, &w, &h);
