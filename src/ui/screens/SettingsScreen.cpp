@@ -22,17 +22,18 @@ SettingsScreen::SettingsScreen(EInkDisplay& display, TextRenderer& renderer, UIM
     : display(display),
       textRenderer(renderer),
       uiManager(uiManager),
-      buttonPowerOff(new TouchButton("", 8, 112, 64, 64)),
+      buttonPowerOff(new TouchButton("", 464, 48, 64, 64)),
       buttonPrev(new TouchButton("↑", 180, EInkDisplay::DISPLAY_HEIGHT - 180, 180, 90)),
       buttonNext(new TouchButton("↓", 180, EInkDisplay::DISPLAY_HEIGHT - 90, 180, 90)),
       buttonSelect(new TouchButton("Select", 360, EInkDisplay::DISPLAY_HEIGHT - 180, 180, 180)),
-      buttonBack(new TouchButton("←", 0, EInkDisplay::DISPLAY_HEIGHT - 180, 180, 180)) {
+      buttonBack(new TouchButton("←", 12, 48, 64, 64)) {
   buttonPowerOff->set_icon(TurnOffIconBitmap, TURNOFFICONBITMAP_WIDTH, TURNOFFICONBITMAP_HEIGHT);
   buttonPowerOff->set_margin(5);
+  buttonBack->set_margin(5);
+
   buttonPrev->set_margin(10);
   buttonNext->set_margin(10);
   buttonSelect->set_margin(10);
-  buttonBack->set_margin(10);
 }
 
 void SettingsScreen::begin() {
@@ -66,6 +67,19 @@ void SettingsScreen::handleButtons(Buttons& buttons) {
       } else if (buttonPowerOff->overlap(touchX, touchY)) {
         Serial.printf("TURN OFF\n");
         uiManager.showSleepScreen();
+      } else {
+        int startY = 158;
+        int lineHeight = 28;
+        if (touchY > startY) {
+          int upFromListTop = touchY - startY;
+          int selectedIndex = upFromListTop / 28;
+          if (this->selectedIndex == selectedIndex) {
+            toggleCurrentSetting();
+          } else {
+            this->selectedIndex = selectedIndex;
+          }
+          this->show();
+        }
       }
     }
   }
@@ -127,6 +141,8 @@ void SettingsScreen::renderSettings() {
   const int lineHeight = 28;
   int totalHeight = SETTINGS_COUNT * lineHeight;
   int startY = (pageH - totalHeight) / 2;
+
+  Serial.printf(">>> SETTING: startY(%d), lineHeigth(%d)", startY, lineHeight);
 
   for (int i = 0; i < SETTINGS_COUNT; ++i) {
     String displayName = getSettingName(i);
