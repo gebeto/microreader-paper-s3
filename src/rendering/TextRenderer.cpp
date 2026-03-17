@@ -125,6 +125,18 @@ void TextRenderer::drawPixel(int16_t x, int16_t y, bool state) {
   }
 }
 
+void TextRenderer::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, bool state) {
+  for (int i = x; i < x + w; i++) {
+    for (int j = y; j < y + h; j++) {
+      drawPixel(i, j, state);
+    }
+  }
+}
+
+void drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, bool state) {
+  
+}
+
 void TextRenderer::drawRect(int16_t x, int16_t y, int16_t w, int16_t h, bool state) {
   for (int i = x; i < x + w; i++) {
     drawPixel(i, y, state);

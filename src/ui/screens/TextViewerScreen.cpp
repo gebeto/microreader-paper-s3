@@ -887,6 +887,9 @@ void TextViewerScreen::showPage() {
   // display bw parts
   const bool doCondition =
       (refreshFrequency > 0) && (pageRenderCounter > 0) && ((pageRenderCounter % refreshFrequency) == 0);
+    
+  // textRenderer.fillRect(0, EINK_HEIGHT - 100, display.DISPLAY_WIDTH, 100, false);
+  // textRenderer.drawRect(0, EINK_HEIGHT - 100, display.DISPLAY_WIDTH, 100, true);
 
   buttonPrev->render(textRenderer);
   buttonMiddle->render(textRenderer);
