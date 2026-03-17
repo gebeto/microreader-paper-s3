@@ -1,6 +1,6 @@
 # MicroReader
 
-A minimal EPUB/TXT reader for ESP32-C3 e-ink devices.
+A minimal EPUB/TXT reader for M5 Paper S3 e-ink device.
 
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
   <img src="resources/images/20251218_181610.jpg" alt="Sample 1" style="width: 49%;">
@@ -213,5 +213,5 @@ The Settings manager is implemented in `src/core/Settings.{h,cpp}`.
 
 ## Thanks this project for making it possible
 
-https://github.com/CidVonHighwind/microreader
-https://github.com/juicecultus/macroreader
+- https://github.com/CidVonHighwind/microreader
+- https://github.com/juicecultus/macroreader
