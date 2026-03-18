@@ -276,10 +276,10 @@ TextViewerScreen::TextViewerScreen(EInkDisplay& display, TextRenderer& renderer,
       // layoutStrategy(new GreedyLayoutStrategy()),
       sdManager(sdManager),
       uiManager(uiManager),
-      buttonPrev(new TouchButton("←", 0, EInkDisplay::DISPLAY_HEIGHT - 60, 140, 60)),
+      buttonPrev(new TouchButton("←", 0, EInkDisplay::DISPLAY_HEIGHT - 140, 140, 140)),
       buttonMiddle(
           new TouchButton("", 140, EInkDisplay::DISPLAY_HEIGHT - 60, EInkDisplay::DISPLAY_WIDTH - 140 * 2, 60)),
-      buttonNext(new TouchButton("→", EInkDisplay::DISPLAY_WIDTH - 140, EInkDisplay::DISPLAY_HEIGHT - 60, 140, 60)) {
+      buttonNext(new TouchButton("→", EInkDisplay::DISPLAY_WIDTH - 140, EInkDisplay::DISPLAY_HEIGHT - 140, 140, 140)) {
   // Initialize layout config
   layoutConfig.marginLeft = 10;
   layoutConfig.marginRight = 10;
@@ -294,8 +294,12 @@ TextViewerScreen::TextViewerScreen(EInkDisplay& display, TextRenderer& renderer,
   layoutConfig.alignment = LayoutStrategy::ALIGN_LEFT;
   layoutConfig.language = Language::ENGLISH;  // Default to english hyphenation
 
+  buttonPrev->set_margins(0, 100, 100, 0);
   buttonPrev->set_border_width(0);
+  
   buttonNext->set_border_width(0);
+  buttonNext->set_margins(100, 0, 100, 0);
+
   buttonMiddle->set_border_width(0);
 
   // Set the language on the layout strategy
@@ -840,10 +844,9 @@ void TextViewerScreen::showPage() {
       chapterName = provider->getCurrentChapterName();
       if (!chapterName.isEmpty()) {
         // Truncate long chapter names
-        if (chapterName.length() > 42) {
-          chapterName = chapterName.substring(0, 39) + "...";
-        }
-        // indicator = chapterName;
+        // if (chapterName.length() > 42) {
+        //   chapterName = chapterName.substring(0, 39) + "...";
+        // }
         if (showChapterNumbers) {
           int currentCh = provider->getCurrentChapter() + 1;  // 1-indexed for display
           int totalCh = provider->getChapterCount();
@@ -864,7 +867,8 @@ void TextViewerScreen::showPage() {
       textRenderer.getTextBounds(chapterName.c_str(), 0, 0, &x1, &y1, &w, &h);
       int16_t centerX = (layoutConfig.pageWidth - (int)w) / 2;
       int16_t indicatorY = layoutConfig.pageHeight - kFooterPaddingBottom_tv - (int16_t)h;
-      textRenderer.setCursor(centerX, indicatorY - 7);
+      // textRenderer.setCursor(centerX, indicatorY);
+      textRenderer.setCursor(centerX, display.DISPLAY_HEIGHT - 28);
       textRenderer.print(chapterName);
     }
 
@@ -878,7 +882,8 @@ void TextViewerScreen::showPage() {
       Serial.printf("Footer: pageH=%d padding=%d h=%u -> Y=%d, centerX=%d, w=%u\n", layoutConfig.pageHeight,
                     kFooterPaddingBottom_tv, h, indicatorY, centerX, w);
 
-      textRenderer.setCursor(centerX, indicatorY + 13);
+      // textRenderer.setCursor(centerX, indicatorY + 24);
+      textRenderer.setCursor(centerX, display.DISPLAY_HEIGHT - 8);
       textRenderer.print(indicator);
     }
   }
